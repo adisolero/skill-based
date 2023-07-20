@@ -1,0 +1,30 @@
+import socket
+
+def bar_to_atmosphere(pressure_in_bar):
+    return pressure_in_bar * 0.986923
+
+def main():
+    host = '192.168.233.131'
+    port = 12345
+
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, port))
+    server_socket.listen(1)
+    print("Server listening on {}:{}".format(host, port))
+
+    while True:
+        conn, addr = server_socket.accept()
+        print("Connection from: {}".format(addr))
+        data = conn.recv(1024)
+        if not data:
+            break
+
+        pressure_in_bar = float(data.decode())
+        atmosphere_standard = bar_to_atmosphere(pressure_in_bar)
+        conn.send(str(atmosphere_standard).encode())
+
+        conn.close()
+        print("Connection closed with: {}".format(addr))
+
+if __name__ == "__main__":
+    main()
