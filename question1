@@ -1,0 +1,30 @@
+import socket
+
+def send_student_id(host, port, student_id):
+    try:
+        # Create a socket object
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Connect to the server
+        client_socket.connect((host, port))
+
+        # Send the UiTM Student ID to the server
+        client_socket.sendall(student_id.encode())
+
+        # Receive the server response
+        response = client_socket.recv(1024).decode()
+
+        # Close the connection
+        client_socket.close()
+
+        return response
+    except Exception as e:
+        return str(e)
+
+if __name__ == "__main__":
+    host = "izani.synology.me"
+    port = 8443
+    student_id = "2022610494"  # Replace this with your actual UiTM Student ID
+
+    server_response = send_student_id(host, port, student_id)
+    print("Server Response:", server_response)
