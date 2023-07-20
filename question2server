@@ -1,36 +1,67 @@
-import socket
-import random
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
-def generate_random_number():
-    return random.randint(100, 999)
+#define PORT 8080
 
-def main():
-    host = '192.168.233.131'
-    port = 8443
+int generate_random_number() {
+    return rand() % (999 - 100 + 1) + 100;
+}
 
-    # Create socket
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+int main() {
+    srand(time(0)); // Seed the random number generator with current time
 
-    # Bind the socket to the address and port
-    server_socket.bind((host, port))
+    int server_socket, new_socket;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+    int random_number;
 
-    # Listen for incoming connections
-    server_socket.listen(1)
-    print(f"Server is listening on {host}:{port}...")
+    // Create TCP socket
+    if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
 
-    # Accept connection from client
-    client_socket, client_addr = server_socket.accept()
+    // Attach socket to the port 8080
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(PORT);
 
-    # Generate random number
-    random_number = generate_random_number()
-    print(f"Generated Random Number: {random_number}")
+    // Bind the socket to a specific address and port
+    if (bind(server_socket, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
 
-    # Send random number to the client
-    client_socket.send(str(random_number).encode())
+    // Listen for incoming connections
+    if (listen(server_socket, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
 
-    # Close the sockets
-    client_socket.close()
-    server_socket.close()
+    // Accept a new connection
+    if ((new_socket = accept(server_socket, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
 
-if __name__ == "__main__":
-    main()
+    // Generate and send the random number to the client
+    random_number = generate_random_number();
+    printf("Generated random number: %d\n", random_number);
+    send(new_socket, &random_number, sizeof(random_number), 0);
+
+    // Close the sockets
+    close(new_socket);
+    close(server_socket);
+
+    return 0;
+}
