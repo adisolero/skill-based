@@ -1,25 +1,45 @@
-import socket
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
-def main():
-    host = '192.168.233.131'
-    port = 8443
+#define PORT 8080
 
-    # Create socket
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+int main() {
+    int client_socket;
+    struct sockaddr_in server_addr;
+    int random_number;
 
-    # Connect to server
-    client_socket.connect((host, port))
+    // Create TCP socket
+    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
 
-    # Receive random number from server
-    data = client_socket.recv(1024).decode()
-    random_number = int(data)
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
 
-    # Close the socket
-    client_socket.close()
+    // Convert IPv4 and IPv6 addresses from text to binary form
+    if (inet_pton(AF_INET, "192.168.233.131", &server_addr.sin_addr) <= 0) {
+        perror("invalid address");
+        exit(EXIT_FAILURE);
+    }
 
-    # Display the received random number
-    print(f"Received Random Number from Server: {random_number}")
+    // Connect to the server
+    if (connect(client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("connection failed");
+        exit(EXIT_FAILURE);
+    }
 
-if __name__ == "__main__":
-    main()
+    // Receive the random number from the server
+    recv(client_socket, &random_number, sizeof(random_number), 0);
 
+    // Display the random number received from the server
+    printf("Received random number: %d\n", random_number);
+
+    // Close the socket
+    close(client_socket);
+
+    return 0;
+}
