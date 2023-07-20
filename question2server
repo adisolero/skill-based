@@ -1,0 +1,36 @@
+import socket
+import random
+
+def generate_random_number():
+    return random.randint(100, 999)
+
+def main():
+    host = '192.168.233.131'
+    port = 8443
+
+    # Create socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Bind the socket to the address and port
+    server_socket.bind((host, port))
+
+    # Listen for incoming connections
+    server_socket.listen(1)
+    print(f"Server is listening on {host}:{port}...")
+
+    # Accept connection from client
+    client_socket, client_addr = server_socket.accept()
+
+    # Generate random number
+    random_number = generate_random_number()
+    print(f"Generated Random Number: {random_number}")
+
+    # Send random number to the client
+    client_socket.send(str(random_number).encode())
+
+    # Close the sockets
+    client_socket.close()
+    server_socket.close()
+
+if __name__ == "__main__":
+    main()
