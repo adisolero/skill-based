@@ -1,1 +1,25 @@
+import socket
+
+def main():
+    host = '192.168.233.131'
+    port = 8443
+
+    # Create socket
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Connect to server
+    client_socket.connect((host, port))
+
+    # Receive random number from server
+    data = client_socket.recv(1024).decode()
+    random_number = int(data)
+
+    # Close the socket
+    client_socket.close()
+
+    # Display the received random number
+    print(f"Received Random Number from Server: {random_number}")
+
+if __name__ == "__main__":
+    main()
 
